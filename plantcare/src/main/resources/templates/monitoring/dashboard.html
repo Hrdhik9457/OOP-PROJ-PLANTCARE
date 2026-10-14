@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Smart Monitoring')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">📊 Smart Environmental Monitoring</h1>
+            <p class="page-subtitle">Real-time simulated telemetry for soil moisture, ambient lighting, and temperature.</p>
+        </div>
+        <form th:action="@{/monitoring/refresh}" method="post">
+            <button type="submit" class="btn btn-primary">🔄 Refresh Sensor Readings</button>
+        </form>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+    <!-- Simulated Hardware Notice -->
+    <div class="alert alert-info simulated-notice">
+        <span class="simulated-icon">🔬</span>
+        <div>
+            <strong>Simulated Telemetry Mode:</strong> All sensor values below are dynamically simulated in Java memory to demonstrate the <code>Monitorable</code> interface. No physical sensors or IoT microcontrollers (e.g. ESP32) are connected.
+        </div>
+    </div>
+
+    <!-- Environmental Summary Cards -->
+    <div class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+            <span class="stat-number" th:text="${#numbers.formatDecimal(avgMoisture, 1, 1)} + '%'">55.0%</span>
+            <span class="stat-label">💧 Avg Soil Moisture</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" th:text="${#numbers.formatDecimal(avgTemp, 1, 1)} + '°C'">22.5°C</span>
+            <span class="stat-label">🌡 Avg Ambient Temp</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" th:text="${#numbers.formatDecimal(avgLight, 1, 1)} + '%'">62.0%</span>
+            <span class="stat-label">☀️ Avg Light Level</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number" th:text="${alertCount}" style="color: #c0392b;">1</span>
+            <span class="stat-label">⚠️ Plants Needing Check</span>
+        </div>
+    </div>
+
+    <!-- Telemetry Cards Grid -->
+    <div class="plants-grid">
+        <div class="card telemetry-card" th:each="t : ${telemetryList}">
+            
+            <!-- Card Header -->
+            <div class="telemetry-header">
+                <div class="telemetry-plant-info">
+                    <span class="telemetry-emoji" th:text="${t.plantEmoji}">🌿</span>
+                    <div>
+                        <h3 class="telemetry-title" th:text="${t.plantName}">Plant Name</h3>
+                        <span class="badge badge-blue" th:text="${t.plantType}">Indoor Plant</span>
+                    </div>
+                </div>
+                <div class="telemetry-badges">
+                    <span class="badge" th:classappend="${t.healthBadgeClass}" th:text="${t.healthStatus}">Good</span>
+                    <span class="simulated-pill">SIMULATED</span>
+                </div>
+            </div>
+
+            <!-- Sensor Gauges -->
+            <div class="telemetry-gauges">
+                <!-- Moisture -->
+                <div class="sensor-card">
+                    <div class="sensor-label">💧 Moisture</div>
+                    <div class="sensor-bar-wrap">
+                        <div class="sensor-bar-track">
+                            <div class="sensor-bar-fill moisture"
+                                 th:style="'width:' + ${t.soilMoisture} + '%'"></div>
+                        </div>
+                        <span class="sensor-value"
+                              th:text="${#numbers.formatDecimal(t.soilMoisture, 1, 1)} + '%'">50%</span>
+                    </div>
+                    <span class="sensor-status" th:text="${t.moistureStatus}">Optimal</span>
+                </div>
+
+                <!-- Light -->
+                <div class="sensor-card">
+                    <div class="sensor-label">☀️ Light</div>
+                    <div class="sensor-bar-wrap">
+                        <div class="sensor-bar-track">
+                            <div class="sensor-bar-fill light"
+                                 th:style="'width:' + ${t.lightLevel} + '%'"></div>
+                        </div>
+                        <span class="sensor-value"
+                              th:text="${#numbers.formatDecimal(t.lightLevel, 1, 1)} + '%'">60%</span>
+                    </div>
+                    <span class="sensor-status" th:text="${t.lightStatus}">Good</span>
+                </div>
+
+                <!-- Temperature -->
+                <div class="sensor-card">
+                    <div class="sensor-label">🌡 Temp</div>
+                    <div class="sensor-bar-wrap">
+                        <div class="sensor-bar-track">
+                            <div class="sensor-bar-fill temp"
+                                 th:style="'width:' + (${t.temperature} / 60 * 100) + '%'"></div>
+                        </div>
+                        <span class="sensor-value"
+                              th:text="${#numbers.formatDecimal(t.temperature, 1, 1)} + '°C'">22°C</span>
+                    </div>
+                    <span class="sensor-status" th:text="${t.temperatureStatus}">Comfortable</span>
+                </div>
+            </div>
+
+            <!-- Card Footer -->
+            <div class="telemetry-footer">
+                <small class="telemetry-time">
+                    ⏱ Updated: <span th:text="${t.formattedTimestamp}">12:00:00</span>
+                </small>
+                <div class="telemetry-actions">
+                    <a th:href="@{/plants/{id}(id=${t.plantId})}" class="btn btn-secondary btn-sm">Inspect Plant →</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

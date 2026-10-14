@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editMode} ? 'Edit Plant' : 'Add Plant')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title" th:text="${editMode} ? '✏ Edit Plant' : '🌱 Add New Plant'">Add Plant</h1>
+            <p class="page-subtitle">Fill in the details below. Fields marked * are required.</p>
+        </div>
+        <a href="/plants" class="btn btn-secondary">← Back to Plants</a>
+    </div>
+
+    <!-- Error -->
+    <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+    <!-- Form -->
+    <div class="form-card card">
+        <form th:action="${editMode} ? @{/plants/edit/{id}(id=${plantId})} : @{/plants/add}"
+              th:object="${plantForm}"
+              method="post">
+
+            <!-- ── Common Fields ── -->
+            <div class="form-section">
+                <h3 class="form-section-title">🌿 Plant Details</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" th:field="*{name}"
+                               class="form-control" placeholder="e.g. My Monstera"
+                               th:classappend="${#fields.hasErrors('name')} ? 'is-error' : ''"/>
+                        <span class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="species">Species *</label>
+                        <input type="text" id="species" th:field="*{species}"
+                               class="form-control" placeholder="e.g. Monstera deliciosa"
+                               th:classappend="${#fields.hasErrors('species')} ? 'is-error' : ''"/>
+                        <span class="field-error" th:if="${#fields.hasErrors('species')}" th:errors="*{species}"></span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="emoji">Emoji Icon</label>
+                        <input type="text" id="emoji" th:field="*{emoji}"
+                               class="form-control" placeholder="🌿"/>
+                        <small>Paste any emoji, e.g. 🌵 🌸 🪴 🍅</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Plant Type *</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" th:field="*{plantType}" value="INDOOR"
+                                       th:disabled="${editMode}" onchange="toggleType()"/>
+                                🏠 Indoor
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" th:field="*{plantType}" value="OUTDOOR"
+                                       th:disabled="${editMode}" onchange="toggleType()"/>
+                                🌳 Outdoor
+                            </label>
+                        </div>
+                        <span class="field-error" th:if="${#fields.hasErrors('plantType')}" th:errors="*{plantType}"></span>
+                        <small th:if="${editMode}" style="color:var(--text-light);">Plant type cannot be changed after creation.</small>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label for="description">Description</label>
+                    <textarea id="description" th:field="*{description}"
+                              class="form-control" rows="3"
+                              placeholder="Brief description of this plant..."></textarea>
+                </div>
+            </div>
+
+            <!-- ── Sensor Values ── -->
+            <div class="form-section">
+                <h3 class="form-section-title">📊 Sensor Readings</h3>
+                <div class="form-row form-row-3">
+                    <div class="form-group">
+                        <label for="soilMoisture">💧 Soil Moisture (0–100%)</label>
+                        <input type="number" id="soilMoisture" th:field="*{soilMoisture}"
+                               class="form-control" min="0" max="100" step="0.1"
+                               th:classappend="${#fields.hasErrors('soilMoisture')} ? 'is-error' : ''"/>
+                        <span class="field-error" th:if="${#fields.hasErrors('soilMoisture')}" th:errors="*{soilMoisture}"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="lightLevel">☀️ Light Level (0–100%)</label>
+                        <input type="number" id="lightLevel" th:field="*{lightLevel}"
+                               class="form-control" min="0" max="100" step="0.1"
+                               th:classappend="${#fields.hasErrors('lightLevel')} ? 'is-error' : ''"/>
+                        <span class="field-error" th:if="${#fields.hasErrors('lightLevel')}" th:errors="*{lightLevel}"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="temperature">🌡 Temperature (°C)</label>
+                        <input type="number" id="temperature" th:field="*{temperature}"
+                               class="form-control" min="-20" max="60" step="0.1"
+                               th:classappend="${#fields.hasErrors('temperature')} ? 'is-error' : ''"/>
+                        <span class="field-error" th:if="${#fields.hasErrors('temperature')}" th:errors="*{temperature}"></span>
+                    </div>
+                </div>
+                <div class="form-group" style="max-width:240px;">
+                    <label for="wateringFrequencyDays">💧 Watering Every (days) *</label>
+                    <input type="number" id="wateringFrequencyDays" th:field="*{wateringFrequencyDays}"
+                           class="form-control" min="1" max="365"
+                           th:classappend="${#fields.hasErrors('wateringFrequencyDays')} ? 'is-error' : ''"/>
+                    <span class="field-error" th:if="${#fields.hasErrors('wateringFrequencyDays')}" th:errors="*{wateringFrequencyDays}"></span>
+                </div>
+            </div>
+
+            <!-- ── Indoor-specific Fields ── -->
+            <div class="form-section" id="indoorFields">
+                <h3 class="form-section-title">🏠 Indoor Settings</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lightRequirement">Light Requirement</label>
+                        <select id="lightRequirement" th:field="*{lightRequirement}" class="form-control">
+                            <option value="LOW">🌑 Low Light</option>
+                            <option value="MEDIUM">🌤 Medium Light</option>
+                            <option value="HIGH">☀️ Bright / High Light</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="idealRoom">Ideal Room</label>
+                        <input type="text" id="idealRoom" th:field="*{idealRoom}"
+                               class="form-control" placeholder="e.g. Living Room"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" th:field="*{airPurifying}"/>
+                        🌬 Air-Purifying Plant
+                    </label>
+                </div>
+            </div>
+
+            <!-- ── Outdoor-specific Fields ── -->
+            <div class="form-section" id="outdoorFields" style="display:none;">
+                <h3 class="form-section-title">🌳 Outdoor Settings</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sunExposure">Sun Exposure</label>
+                        <select id="sunExposure" th:field="*{sunExposure}" class="form-control">
+                            <option value="FULL_SUN">☀️ Full Sun</option>
+                            <option value="PARTIAL_SHADE">⛅ Partial Shade</option>
+                            <option value="FULL_SHADE">🌿 Full Shade</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="season">Season</label>
+                        <input type="text" id="season" th:field="*{season}"
+                               class="form-control" placeholder="e.g. Spring–Summer"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" th:field="*{edible}"/>
+                        🥬 Edible Plant (fruit, vegetable, herb)
+                    </label>
+                </div>
+            </div>
+
+            <!-- ── Submit ── -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary"
+                        th:text="${editMode} ? 'Save Changes' : '🌱 Add Plant'">Add Plant</button>
+                <a href="/plants" class="btn btn-secondary">Cancel</a>
+            </div>
+
+        </form>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+<script th:inline="javascript">
+    var currentType = /*[[${plantForm.plantType}]]*/ 'INDOOR';
+
+    function toggleType() {
+        var radios = document.querySelectorAll('input[name="plantType"]');
+        radios.forEach(function(r) { if (r.checked) currentType = r.value; });
+        showType(currentType);
+    }
+
+    function showType(type) {
+        document.getElementById('indoorFields').style.display  = (type === 'INDOOR')  ? '' : 'none';
+        document.getElementById('outdoorFields').style.display = (type === 'OUTDOOR') ? '' : 'none';
+    }
+
+    // Run on page load
+    showType(currentType);
+</script>
+</body>
+</html>

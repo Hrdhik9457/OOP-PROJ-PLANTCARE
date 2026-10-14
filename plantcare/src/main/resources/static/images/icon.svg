@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d6a4f"/>
+      <stop offset="100%" stop-color="#1b4332"/>
+    </linearGradient>
+    <linearGradient id="leafGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b7ddd0"/>
+      <stop offset="100%" stop-color="#74b69e"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Rounded Rect -->
+  <rect width="512" height="512" rx="100" fill="url(#bgGradient)"/>
+  
+  <!-- Outer Ring Accent -->
+  <circle cx="256" cy="256" r="210" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="8"/>
+  
+  <!-- Sprout Stem -->
+  <path d="M 256 390 C 256 270 280 220 340 180" fill="none" stroke="#faf6ef" stroke-width="18" stroke-linecap="round"/>
+  
+  <!-- Left Leaf -->
+  <path d="M 256 310 C 170 300 130 220 160 150 C 230 140 250 220 256 310 Z" fill="url(#leafGradient)"/>
+  <path d="M 160 150 C 195 210 230 260 256 310" fill="none" stroke="#2d6a4f" stroke-width="6" stroke-linecap="round"/>
+  
+  <!-- Right Leaf -->
+  <path d="M 285 240 C 370 230 400 160 370 95 C 300 95 285 165 285 240 Z" fill="#74b69e"/>
+  <path d="M 370 95 C 340 150 310 195 285 240" fill="none" stroke="#1b4332" stroke-width="5" stroke-linecap="round"/>
+  
+  <!-- Dew Drop -->
+  <circle cx="225" cy="180" r="10" fill="#4fc3f7" opacity="0.85"/>
+</svg>

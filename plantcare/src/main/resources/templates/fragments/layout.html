@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${title} + ' — PlantCare'">PlantCare</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="manifest" th:href="@{/manifest.json}"/>
+    <meta name="theme-color" content="#2d6a4f"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+    <link rel="apple-touch-icon" th:href="@{/images/icon.svg}"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ===== NAVBAR FRAGMENT ===== -->
+<nav th:fragment="navbar" class="navbar">
+    <div class="nav-container">
+        <a href="/" class="nav-brand">
+            <span class="nav-logo">🌿</span>
+            <span class="nav-title">PlantCare</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="/" class="nav-link">Dashboard</a></li>
+            <li><a href="/plants" class="nav-link">My Plants</a></li>
+            <li><a href="/library" class="nav-link">Plant Library</a></li>
+            <li><a href="/monitoring" class="nav-link">Monitoring</a></li>
+            <li><a href="/tasks" class="nav-link">Care Tasks</a></li>
+            <li><a href="/journal" class="nav-link">Journal</a></li>
+            <li><a href="/community" class="nav-link">Community</a></li>
+        </ul>
+        <button class="nav-toggle" onclick="toggleNav()" aria-label="Toggle navigation">☰</button>
+    </div>
+    <ul class="nav-mobile" id="mobileNav">
+        <li><a href="/">Dashboard</a></li>
+        <li><a href="/plants">My Plants</a></li>
+        <li><a href="/library">Plant Library</a></li>
+        <li><a href="/monitoring">Monitoring</a></li>
+        <li><a href="/tasks">Care Tasks</a></li>
+        <li><a href="/journal">Journal</a></li>
+        <li><a href="/community">Community</a></li>
+    </ul>
+</nav>
+
+<!-- ===== FOOTER FRAGMENT ===== -->
+<footer th:fragment="footer" class="footer">
+    <div class="footer-container">
+        <p>🌿 PlantCare &mdash; Smart Plant Care &amp; Gardening</p>
+        <p class="footer-sub">A Java OOP Project</p>
+    </div>
+</footer>
+
+</body>
+</html>

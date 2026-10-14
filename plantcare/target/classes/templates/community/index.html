@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gardening Community')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">🌱 PlantCare Community</h1>
+            <p class="page-subtitle">Ask gardening questions, troubleshoot plant problems, and share advice with fellow plant parents.</p>
+        </div>
+        <a href="#askQuestion" class="btn btn-primary">+ Ask a Question</a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+
+    <!-- Main Reddit-Style Layout: Feed + Sidebar -->
+    <div class="community-layout">
+
+        <!-- Left Feed Column -->
+        <div class="community-feed">
+
+            <!-- Reddit Sort Bar: Hot, New, Trending, Top -->
+            <div class="reddit-sort-bar card">
+                <span class="sort-label">Sort by:</span>
+                <a th:href="@{/community(sort='hot', tag=${currentTag})}"
+                   class="sort-tab" th:classappend="${currentSort == 'hot'} ? 'active' : ''">
+                    🔥 Hot
+                </a>
+                <a th:href="@{/community(sort='new', tag=${currentTag})}"
+                   class="sort-tab" th:classappend="${currentSort == 'new'} ? 'active' : ''">
+                    ✨ New
+                </a>
+                <a th:href="@{/community(sort='trending', tag=${currentTag})}"
+                   class="sort-tab" th:classappend="${currentSort == 'trending'} ? 'active' : ''">
+                    📈 Trending
+                </a>
+                <a th:href="@{/community(sort='top', tag=${currentTag})}"
+                   class="sort-tab" th:classappend="${currentSort == 'top'} ? 'active' : ''">
+                    🏆 Top
+                </a>
+            </div>
+
+            <!-- Tag Chips -->
+            <div class="tag-chips-bar">
+                <a th:each="t : ${tags}"
+                   th:href="@{/community(sort=${currentSort}, tag=${t})}"
+                   class="tag-chip"
+                   th:classappend="${currentTag == t} ? 'active' : ''"
+                   th:text="${t}">Indoor Care</a>
+            </div>
+
+            <!-- Posts Stream -->
+            <div class="reddit-posts-list" th:if="${!posts.isEmpty()}">
+                <div class="reddit-post-card card" th:each="p : ${posts}">
+                    
+                    <!-- Left: Reddit Vote Column -->
+                    <div class="vote-column">
+                        <form th:action="@{/community/vote/{id}(id=${p.id})}" method="post">
+                            <input type="hidden" name="type" value="up"/>
+                            <button type="submit" class="vote-btn upvote" title="Upvote">▲</button>
+                        </form>
+                        <span class="vote-score" th:text="${p.score}">42</span>
+                        <form th:action="@{/community/vote/{id}(id=${p.id})}" method="post">
+                            <input type="hidden" name="type" value="down"/>
+                            <button type="submit" class="vote-btn downvote" title="Downvote">▼</button>
+                        </form>
+                    </div>
+
+                    <!-- Right: Post Body -->
+                    <div class="post-main">
+                        <!-- Post Header Meta -->
+                        <div class="post-meta">
+                            <span class="post-author-avatar" th:text="${p.authorAvatar}">🪴</span>
+                            <span class="post-author" th:text="'u/' + ${p.author}">u/SproutNewbie</span>
+                            <span class="author-badge" th:text="${p.authorBadge}">Beginner</span>
+                            <span class="meta-dot">·</span>
+                            <span class="post-time" th:text="${p.formattedTimeAgo}">3h ago</span>
+                            <span class="badge" th:classappend="${p.tagBadgeClass}" th:text="${p.tag}">Indoor Care</span>
+                        </div>
+
+                        <!-- Post Title -->
+                        <h2 class="post-title">
+                            <a th:href="@{/community/post/{id}(id=${p.id})}" th:text="${p.title}">Post Title Query</a>
+                        </h2>
+
+                        <!-- Post Snippet Content -->
+                        <p class="post-content-preview" th:text="${p.content}">Content text description goes here...</p>
+
+                        <!-- Post Actions Bar -->
+                        <div class="post-actions-bar">
+                            <!-- Comments Link -->
+                            <a th:href="@{/community/post/{id}(id=${p.id})}" class="action-btn">
+                                💬 <span th:text="${p.commentCount}">2</span> Comments
+                            </a>
+
+                            <!-- Repost -->
+                            <form th:action="@{/community/repost/{id}(id=${p.id})}" method="post" style="display:inline;">
+                                <button type="submit" class="action-btn">
+                                    🔁 <span th:text="${p.reposts}">0</span> Reposts
+                                </button>
+                            </form>
+
+                            <!-- Share -->
+                            <button type="button" class="action-btn"
+                                    th:onclick="'copyShareLink(' + ${p.id} + ')'">
+                                🔗 Share
+                            </button>
+
+                            <!-- Reaction Buttons -->
+                            <div class="reactions-group">
+                                <form th:each="r : ${p.reactions}"
+                                      th:action="@{/community/react/{id}(id=${p.id})}" method="post" class="reaction-form">
+                                    <input type="hidden" name="emoji" th:value="${r.key}"/>
+                                    <button type="submit" class="reaction-pill" th:title="'React ' + ${r.key}">
+                                        <span th:text="${r.key}">🌿</span>
+                                        <span class="rx-count" th:text="${r.value}">0</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state card" th:if="${posts.isEmpty()}">
+                <div class="empty-icon">🌿</div>
+                <h2>No posts in this category yet!</h2>
+                <p>Be the first to start a conversation in this topic.</p>
+            </div>
+
+            <!-- Ask a Question Section -->
+            <div class="card ask-question-card" id="askQuestion" style="margin-top: 2rem;">
+                <h3 class="form-section-title">💬 Ask the Gardening Community</h3>
+                <p class="page-subtitle" style="margin-bottom: 1.25rem;">Have a sick plant or need care recommendations? Post your query to get help from fellow gardeners.</p>
+
+                <form th:action="@{/community/add}" method="post">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="author">Your Name / Handle *</label>
+                            <input type="text" id="author" name="author" class="form-control"
+                                   placeholder="e.g. PlantParent101" required/>
+                        </div>
+                        <div class="form-group">
+                            <label for="tag">Category Tag *</label>
+                            <select id="tag" name="tag" class="form-control" required>
+                                <option value="Indoor Care">🏠 Indoor Care</option>
+                                <option value="Pest & Disease">🪰 Pest &amp; Disease</option>
+                                <option value="Soil & Fertilizer">🧪 Soil &amp; Fertilizer</option>
+                                <option value="Propagation">✂️ Propagation</option>
+                                <option value="Plant ID">🔍 Plant Identification</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 1rem;">
+                        <div class="form-group">
+                            <label for="authorAvatar">Choose Your Avatar</label>
+                            <select id="authorAvatar" name="authorAvatar" class="form-control">
+                                <option value="🪴">🪴 Potted Plant</option>
+                                <option value="🌿" selected>🌿 Green Leaf</option>
+                                <option value="🌵">🌵 Cactus</option>
+                                <option value="🌸">🌸 Flower</option>
+                                <option value="🌳">🌳 Tree</option>
+                                <option value="🍅">🍅 Tomato</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="authorBadge">Experience Level</label>
+                            <select id="authorBadge" name="authorBadge" class="form-control">
+                                <option value="Beginner" selected>🌱 Beginner</option>
+                                <option value="Enthusiast">🌿 Enthusiast</option>
+                                <option value="Plant Doctor">🩺 Plant Doctor</option>
+                                <option value="Master Gardener">🏆 Master Gardener</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width" style="margin-top: 1rem;">
+                        <label for="title">Title / Problem Summary *</label>
+                        <input type="text" id="title" name="title" class="form-control"
+                               placeholder="e.g. My snake plant has mushy leaves at the base — how can I save it?" required/>
+                    </div>
+
+                    <div class="form-group full-width" style="margin-top: 1rem;">
+                        <label for="content">Detailed Query &amp; Growing Conditions *</label>
+                        <textarea id="content" name="content" class="form-control" rows="4"
+                                  placeholder="Mention watering frequency, lighting, pot type, drainage holes, or recent movements..." required></textarea>
+                    </div>
+
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary">🚀 Publish Community Post</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Right Sidebar Column -->
+        <aside class="community-sidebar">
+            <!-- About Community Card -->
+            <div class="card community-about-card">
+                <div class="about-header">
+                    <span class="about-icon">🌿</span>
+                    <h3>r/PlantCare</h3>
+                </div>
+                <p class="about-desc">
+                    A welcoming peer-to-peer botanical forum. Exchange tips, identify rare species, diagnose pests, and share propagation progress.
+                </p>
+                <div class="about-stats">
+                    <div class="about-stat-item">
+                        <span class="about-stat-num" th:text="${posts.size()}">5</span>
+                        <span class="about-stat-label">Discussions</span>
+                    </div>
+                    <div class="about-stat-item">
+                        <span class="about-stat-num">98%</span>
+                        <span class="about-stat-label">Answer Rate</span>
+                    </div>
+                </div>
+                <a href="#askQuestion" class="btn btn-primary" style="width: 100%; text-align: center; margin-top: 1rem;">Create Post</a>
+            </div>
+
+            <!-- Community Rules Card -->
+            <div class="card community-rules-card" style="margin-top: 1.25rem;">
+                <h4>📜 Community Etiquette</h4>
+                <ol class="rules-list">
+                    <li><strong>Include Context:</strong> Mention pot size, lighting conditions, and watering frequency.</li>
+                    <li><strong>Be Kind &amp; Helpful:</strong> Every master gardener was once a beginner.</li>
+                    <li><strong>Upvote Great Answers:</strong> Help the most accurate advice rise to the top.</li>
+                    <li><strong>Share Reactions:</strong> Show appreciation with 🌿, 💚, 💡, and 🌱.</li>
+                </ol>
+            </div>
+        </aside>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    function copyShareLink(postId) {
+        const url = window.location.origin + '/community/post/' + postId;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('🔗 Post link copied to clipboard: ' + url);
+        }).catch(() => {
+            alert('🔗 Post link: ' + url);
+        });
+    }
+</script>
+</body>
+</html>

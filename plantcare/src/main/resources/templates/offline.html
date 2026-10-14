@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Offline Mode')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+    <div class="empty-state card" style="max-width: 600px; margin: 3rem auto; padding: 3rem 2rem;">
+        <div class="empty-icon">📶</div>
+        <h2>You are currently offline</h2>
+        <p style="color: var(--text-mid); margin: 1rem 0 1.5rem; line-height: 1.6;">
+            PlantCare is operating in offline mode via our Service Worker cache.
+            Your previously visited pages and plant data remain accessible. Full connectivity will automatically resume once your network connection is restored.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button onclick="window.location.reload()" class="btn btn-primary">🔄 Try Reconnecting</button>
+            <a href="/" class="btn btn-secondary">Go to Dashboard</a>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

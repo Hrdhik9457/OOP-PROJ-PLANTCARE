@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${post.title})}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+        <a href="/community">← Back to Community Feed</a>
+        <span th:text="'/ ' + ${post.title}">/ Discussion</span>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+
+    <div class="community-layout">
+
+        <!-- Main Discussion Column -->
+        <div class="community-feed">
+
+            <!-- Full Post Card -->
+            <div class="reddit-post-card card detail-post-card">
+                <!-- Left Vote Column -->
+                <div class="vote-column">
+                    <form th:action="@{/community/vote/{id}(id=${post.id})}" method="post">
+                        <input type="hidden" name="type" value="up"/>
+                        <input type="hidden" name="returnTo" value="detail"/>
+                        <button type="submit" class="vote-btn upvote" title="Upvote">▲</button>
+                    </form>
+                    <span class="vote-score" th:text="${post.score}">42</span>
+                    <form th:action="@{/community/vote/{id}(id=${post.id})}" method="post">
+                        <input type="hidden" name="type" value="down"/>
+                        <input type="hidden" name="returnTo" value="detail"/>
+                        <button type="submit" class="vote-btn downvote" title="Downvote">▼</button>
+                    </form>
+                </div>
+
+                <!-- Right Post Content -->
+                <div class="post-main">
+                    <div class="post-meta">
+                        <span class="post-author-avatar" th:text="${post.authorAvatar}">🪴</span>
+                        <span class="post-author" th:text="'u/' + ${post.author}">u/SproutNewbie</span>
+                        <span class="author-badge" th:text="${post.authorBadge}">Beginner</span>
+                        <span class="meta-dot">·</span>
+                        <span class="post-time" th:text="${post.formattedTimeAgo}">3h ago</span>
+                        <span class="badge" th:classappend="${post.tagBadgeClass}" th:text="${post.tag}">Indoor Care</span>
+                    </div>
+
+                    <h1 class="post-title-detail" th:text="${post.title}">Post Title Query</h1>
+
+                    <div class="post-full-content" th:text="${post.content}">Full content text...</div>
+
+                    <!-- Action Bar -->
+                    <div class="post-actions-bar" style="margin-top: 1.5rem;">
+                        <span class="action-btn" style="cursor: default;">
+                            💬 <span th:text="${post.commentCount}">2</span> Answers
+                        </span>
+
+                        <form th:action="@{/community/repost/{id}(id=${post.id})}" method="post" style="display:inline;">
+                            <input type="hidden" name="returnTo" value="detail"/>
+                            <button type="submit" class="action-btn">
+                                🔁 <span th:text="${post.reposts}">0</span> Reposts
+                            </button>
+                        </form>
+
+                        <button type="button" class="action-btn"
+                                th:onclick="'copyShareLink(' + ${post.id} + ')'">
+                            🔗 Share
+                        </button>
+
+                        <div class="reactions-group">
+                            <form th:each="r : ${post.reactions}"
+                                  th:action="@{/community/react/{id}(id=${post.id})}" method="post" class="reaction-form">
+                                <input type="hidden" name="emoji" th:value="${r.key}"/>
+                                <input type="hidden" name="returnTo" value="detail"/>
+                                <button type="submit" class="reaction-pill" th:title="'React ' + ${r.key}">
+                                    <span th:text="${r.key}">🌿</span>
+                                    <span class="rx-count" th:text="${r.value}">0</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leave an Answer Card -->
+            <div class="card comment-form-card" style="margin-top: 1.5rem;">
+                <h3 class="form-section-title">💬 Post an Answer or Recommendation</h3>
+                <form th:action="@{/community/comment/{id}(id=${post.id})}" method="post">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cAuthor">Your Name / Handle *</label>
+                            <input type="text" id="cAuthor" name="author" class="form-control"
+                                   placeholder="e.g. GardenHero" required/>
+                        </div>
+                        <div class="form-group">
+                            <label for="cBadge">Expertise / Role</label>
+                            <select id="cBadge" name="authorBadge" class="form-control">
+                                <option value="Plant Enthusiast" selected>🌿 Plant Enthusiast</option>
+                                <option value="Plant Doctor">🩺 Plant Doctor</option>
+                                <option value="Master Gardener">🏆 Master Gardener</option>
+                                <option value="Fellow Beginner">🌱 Fellow Beginner</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group full-width" style="margin-top: 1rem;">
+                        <label for="cContent">Your Advice / Diagnosis *</label>
+                        <textarea id="cContent" name="content" class="form-control" rows="3"
+                                  placeholder="Provide step-by-step guidance, diagnosis, or care adjustments..." required></textarea>
+                    </div>
+                    <div class="form-actions" style="margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary">Submit Answer</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Answers List -->
+            <div class="comments-section" style="margin-top: 2rem;">
+                <h3 style="font-family: var(--font-display); color: var(--forest-green); margin-bottom: 1rem;">
+                    💡 Community Answers (<span th:text="${post.comments.size()}">2</span>)
+                </h3>
+
+                <div class="comments-list" th:if="${!post.comments.isEmpty()}">
+                    <div class="comment-item card" th:each="c : ${post.comments}">
+                        <div class="comment-header">
+                            <span class="comment-author" th:text="'u/' + ${c.author}">u/BotanistDave</span>
+                            <span class="author-badge" th:text="${c.authorBadge}">Master Gardener</span>
+                            <span class="meta-dot">·</span>
+                            <span class="comment-time" th:text="${c.formattedTimeAgo}">2h ago</span>
+                        </div>
+                        <div class="comment-body" th:text="${c.content}">
+                            Answer content text...
+                        </div>
+                        <div class="comment-footer">
+                            <form th:action="@{/community/comment-vote/{pId}/{cId}(pId=${post.id}, cId=${c.id})}" method="post" style="display:inline-flex; align-items:center; gap: 0.35rem;">
+                                <input type="hidden" name="type" value="up"/>
+                                <button type="submit" class="vote-btn-sm" title="Upvote answer">▲</button>
+                                <span class="vote-score-sm" th:text="${c.upvotes}">18</span>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="empty-state card" th:if="${post.comments.isEmpty()}">
+                    <div class="empty-icon">💭</div>
+                    <p>No answers yet. Be the first to share your gardening advice!</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="community-sidebar">
+            <div class="card community-about-card">
+                <div class="about-header">
+                    <span class="about-icon">🌿</span>
+                    <h3>r/PlantCare</h3>
+                </div>
+                <p class="about-desc">
+                    Need help with your garden? Community members are active 24/7 diagnosing issues and sharing tips.
+                </p>
+                <a href="/community" class="btn btn-secondary" style="width: 100%; text-align: center; margin-top: 1rem;">← Browse All Topics</a>
+            </div>
+        </aside>
+
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    function copyShareLink(postId) {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('🔗 Discussion link copied to clipboard: ' + url);
+        }).catch(() => {
+            alert('🔗 Link: ' + url);
+        });
+    }
+</script>
+</body>
+</html>

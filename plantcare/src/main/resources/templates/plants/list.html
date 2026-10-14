@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Plants')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">🪴 My Plants</h1>
+            <p class="page-subtitle" th:text="${totalPlants} + ' plants · ' + ${totalIndoor} + ' indoor · ' + ${totalOutdoor} + ' outdoor'">8 plants</p>
+        </div>
+        <a href="/plants/add" class="btn btn-primary">+ Add Plant</a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+
+    <!-- Watering Alert Banner -->
+    <div th:if="${needingWater gt 0}" class="alert alert-warning">
+        💧 <strong th:text="${needingWater}">2</strong> plant(s) need watering today!
+        <a href="#" style="margin-left:.5rem; color:var(--forest-green); font-weight:600;">View all →</a>
+    </div>
+
+    <!-- Plants Grid -->
+    <div class="plants-grid" th:if="${!plants.isEmpty()}">
+        <div class="plant-card" th:each="plant : ${plants}">
+
+            <!-- Emoji + Type -->
+            <div class="plant-card-header" th:classappend="${plant.needsWatering()} ? 'needs-water' : ''">
+                <div class="plant-emoji" th:text="${plant.emoji}">🌿</div>
+                <div class="plant-card-badges">
+                    <span class="badge badge-blue" th:text="${plant.plantType}">Indoor</span>
+                    <span class="badge" th:classappend="${plant.healthBadgeClass}" th:text="${plant.healthStatus}">Good</span>
+                </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="plant-card-body">
+                <h3 class="plant-name" th:text="${plant.name}">Monstera</h3>
+                <p class="plant-species" th:text="${plant.species}">Monstera deliciosa</p>
+
+                <!-- Watering Status -->
+                <div class="watering-status" th:classappend="${plant.needsWatering()} ? 'overdue' : 'ok'">
+                    <span th:if="${plant.needsWatering()}">💧 Needs watering!</span>
+                    <span th:unless="${plant.needsWatering()}"
+                          th:text="'✅ Watered ' + ${plant.daysSinceWatered} + ' day(s) ago'">✅ Watered 2 days ago</span>
+                </div>
+
+                <!-- Sensor Mini-bars -->
+                <div class="mini-sensors">
+                    <div class="mini-sensor">
+                        <span>💧</span>
+                        <div class="sensor-track"><div class="sensor-fill moisture" th:style="'width:' + ${plant.soilMoisture} + '%'"></div></div>
+                        <span th:text="${#numbers.formatDecimal(plant.soilMoisture,1,0)} + '%'">65%</span>
+                    </div>
+                    <div class="mini-sensor">
+                        <span>🌡</span>
+                        <div class="sensor-track"><div class="sensor-fill temp" th:style="'width:' + (${plant.temperature} / 60 * 100) + '%'"></div></div>
+                        <span th:text="${#numbers.formatDecimal(plant.temperature,1,1)} + '°C'">22°C</span>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="plant-card-actions">
+                    <a th:href="@{/plants/{id}(id=${plant.id})}" class="btn btn-secondary btn-sm">View</a>
+                    <a th:href="@{/plants/edit/{id}(id=${plant.id})}" class="btn btn-secondary btn-sm">Edit</a>
+                    <form th:action="@{/plants/delete/{id}(id=${plant.id})}" method="post" style="display:inline"
+                          onsubmit="return confirm('Delete this plant?')">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" th:if="${plants.isEmpty()}">
+        <div class="empty-icon">🌱</div>
+        <h2>No plants yet!</h2>
+        <p>Add your first plant to get started.</p>
+        <a href="/plants/add" class="btn btn-primary">+ Add Plant</a>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

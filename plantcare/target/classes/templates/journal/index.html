@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Growth Journal')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">📔 Growth Journal</h1>
+            <p class="page-subtitle">Document developmental milestones, repotting notes, and observations over time.</p>
+        </div>
+        <a href="#newEntry" class="btn btn-primary">+ Log Milestone</a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+
+    <!-- Filter Bar -->
+    <div class="journal-filter-row">
+        <label for="plantFilter" class="filter-label">Filter by Plant:</label>
+        <select id="plantFilter" class="form-control" style="max-width: 280px;"
+                onchange="filterJournal(this.value)">
+            <option value="0" th:selected="${selectedPlantId == 0}">All Plants (Chronological)</option>
+            <option th:each="p : ${plants}"
+                    th:value="${p.id}"
+                    th:text="${p.emoji} + ' ' + ${p.name}"
+                    th:selected="${selectedPlantId == p.id}">Monstera</option>
+        </select>
+        <span class="entry-count-badge" th:text="${entries.size()} + ' entry(ies) recorded'">5 entries</span>
+    </div>
+
+    <!-- Timeline of Entries -->
+    <div class="timeline-container" th:if="${!entries.isEmpty()}">
+        <div class="timeline-item" th:each="e : ${entries}">
+            <div class="timeline-marker">
+                <span class="timeline-mood" th:text="${e.moodEmoji}">🌿</span>
+            </div>
+            <div class="timeline-card card">
+                <div class="timeline-header">
+                    <div>
+                        <span class="timeline-plant-tag">
+                            <span th:text="${e.plantEmoji}">🌿</span>
+                            <a th:href="@{/plants/{id}(id=${e.plantId})}"
+                               th:text="${e.plantName}" class="task-plant-link">Plant Name</a>
+                        </span>
+                        <span class="badge badge-green" th:text="${e.growthStage}">Vegetative</span>
+                    </div>
+                    <div class="timeline-date-wrap">
+                        <span class="timeline-date" th:text="${e.entryDate}">2026-10-14</span>
+                        <form th:action="@{/journal/delete/{id}(id=${e.id})}" method="post"
+                              onsubmit="return confirm('Delete this journal entry?')" style="display:inline;">
+                            <button type="submit" class="btn btn-secondary btn-sm" title="Delete">🗑</button>
+                        </form>
+                    </div>
+                </div>
+                <h3 class="timeline-title" th:text="${e.title}">Observation Title</h3>
+                <p class="timeline-content" th:text="${e.content}">Observation detailed notes.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state card" th:if="${entries.isEmpty()}">
+        <div class="empty-icon">📝</div>
+        <h2>No entries found!</h2>
+        <p>No milestone entries logged for this selection. Record your first growth observation below.</p>
+    </div>
+
+    <!-- Add Entry Form Card -->
+    <div class="card form-card" id="newEntry" style="margin-top: 2.5rem;">
+        <h3 class="form-section-title">🌱 Record a New Growth Observation</h3>
+        <p class="page-subtitle" style="margin-bottom: 1.25rem;">Keep a permanent chronological log of new leaves, flowers, repotting, or health changes.</p>
+
+        <form th:action="@{/journal/add}" method="post">
+            <div class="form-row form-row-3">
+                <div class="form-group">
+                    <label for="plantIdSelect">Plant *</label>
+                    <select id="plantIdSelect" name="plantId" class="form-control" required>
+                        <option value="" disabled selected>-- Select Plant --</option>
+                        <option th:each="p : ${plants}"
+                                th:value="${p.id}"
+                                th:text="${p.emoji} + ' ' + ${p.name}">Monstera</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="growthStage">Growth Stage</label>
+                    <select id="growthStage" name="growthStage" class="form-control">
+                        <option value="Seedling">🌱 Seedling / Sprout</option>
+                        <option value="Vegetative" selected>🌿 Vegetative Growth</option>
+                        <option value="Budding">🌾 Budding</option>
+                        <option value="Flowering">🌸 Flowering / Blooming</option>
+                        <option value="Fruiting">🍅 Fruiting / Harvest</option>
+                        <option value="Mature">🌳 Mature / Established</option>
+                        <option value="Dormant">🍂 Dormant</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="moodEmoji">Status Mood</label>
+                    <select id="moodEmoji" name="moodEmoji" class="form-control">
+                        <option value="✨" selected>✨ Thriving</option>
+                        <option value="🌿">🌿 Healthy</option>
+                        <option value="🌸">🌸 Blooming</option>
+                        <option value="☀️">☀️ Vibrant</option>
+                        <option value="💧">💧 Rehydrated</option>
+                        <option value="⚠️">⚠️ Recovering</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="title">Milestone Title *</label>
+                    <input type="text" id="title" name="title" class="form-control"
+                           placeholder="e.g. New leaf unfurled, First flower buds" required/>
+                </div>
+                <div class="form-group">
+                    <label for="entryDate">Observation Date *</label>
+                    <input type="date" id="entryDate" name="entryDate" class="form-control"
+                           th:value="${todayDate}" required/>
+                </div>
+            </div>
+
+            <div class="form-group full-width" style="margin-top: 1rem;">
+                <label for="content">Detailed Notes *</label>
+                <textarea id="content" name="content" class="form-control" rows="3"
+                          placeholder="Describe color, size, humidity response, or any changes observed..." required></textarea>
+            </div>
+
+            <div class="form-actions" style="margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary">+ Save Observation</button>
+            </div>
+        </form>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    function filterJournal(plantId) {
+        if (plantId == 0) {
+            window.location.href = '/journal';
+        } else {
+            window.location.href = '/journal?plantId=' + plantId;
+        }
+    }
+</script>
+</body>
+</html>

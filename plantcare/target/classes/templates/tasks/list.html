@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Care Tasks')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">📅 Care Tasks &amp; Schedule</h1>
+            <p class="page-subtitle">Track watering, fertilizing, repotting, and pruning tasks for your plant collection.</p>
+        </div>
+        <a href="#scheduleTask" class="btn btn-primary">+ Schedule Task</a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+
+    <!-- Filter Pills / Tabs -->
+    <div class="task-filter-bar">
+        <a th:href="@{/tasks(filter='all')}"
+           class="filter-pill" th:classappend="${currentFilter == 'all'} ? 'active' : ''">
+            All Tasks (<span th:text="${tasks.size()}">0</span>)
+        </a>
+        <a th:href="@{/tasks(filter='today')}"
+           class="filter-pill" th:classappend="${currentFilter == 'today'} ? 'active' : ''">
+            Due Today (<span th:text="${todayCount}">0</span>)
+        </a>
+        <a th:href="@{/tasks(filter='overdue')}"
+           class="filter-pill" th:classappend="${currentFilter == 'overdue'} ? 'active' : ''">
+            ⚠️ Overdue (<span th:text="${overdueCount}">0</span>)
+        </a>
+        <a th:href="@{/tasks(filter='upcoming')}"
+           class="filter-pill" th:classappend="${currentFilter == 'upcoming'} ? 'active' : ''">
+            Upcoming (<span th:text="${upcomingCount}">0</span>)
+        </a>
+        <a th:href="@{/tasks(filter='completed')}"
+           class="filter-pill" th:classappend="${currentFilter == 'completed'} ? 'active' : ''">
+            ✅ Completed (<span th:text="${completedCount}">0</span>)
+        </a>
+    </div>
+
+    <!-- Task List -->
+    <div class="task-list card" th:if="${!tasks.isEmpty()}">
+        <div class="task-item" th:each="task : ${tasks}"
+             th:classappend="${task.completed} ? 'task-completed' : (${task.isOverdue()} ? 'task-overdue-item' : '')">
+            
+            <!-- Checkbox / Toggle Form -->
+            <form th:action="@{/tasks/toggle/{id}(id=${task.id})}" method="post" class="task-check-form">
+                <button type="submit" class="task-checkbox"
+                        th:title="${task.completed} ? 'Mark as incomplete' : 'Mark as complete'">
+                    <span th:if="${task.completed}">✔</span>
+                    <span th:unless="${task.completed}">&nbsp;</span>
+                </button>
+            </form>
+
+            <!-- Task Main Info -->
+            <div class="task-info">
+                <div class="task-meta">
+                    <span class="task-plant-badge">
+                        <span th:text="${task.plantEmoji}">🌿</span>
+                        <a th:href="@{/plants/{id}(id=${task.plantId})}"
+                           th:text="${task.plantName}" class="task-plant-link">Plant Name</a>
+                    </span>
+                    <span class="task-type-badge">
+                        <span th:text="${task.taskType.emoji}">💧</span>
+                        <span th:text="${task.taskType.displayName}">Watering</span>
+                    </span>
+                    <span class="badge" th:classappend="${task.statusBadgeClass}" th:text="${task.statusLabel}">Status</span>
+                </div>
+                <div class="task-desc">
+                    <p th:if="${task.notes != null and !task.notes.isEmpty()}" th:text="${task.notes}">Task instructions here.</p>
+                    <small class="task-date-info">
+                        Due: <strong th:text="${task.dueDate}">2026-10-15</strong>
+                        <span th:if="${task.completed and task.completedDate != null}"
+                              th:text="' · Completed on ' + ${task.completedDate}"></span>
+                    </small>
+                </div>
+            </div>
+
+            <!-- Task Actions -->
+            <div class="task-actions">
+                <form th:action="@{/tasks/delete/{id}(id=${task.id})}" method="post"
+                      onsubmit="return confirm('Delete this care task?')">
+                    <button type="submit" class="btn btn-secondary btn-sm" title="Delete Task">🗑</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state card" th:if="${tasks.isEmpty()}">
+        <div class="empty-icon">🎉</div>
+        <h2>No tasks in this category!</h2>
+        <p>All clear or no tasks match this filter. Schedule a new care task below.</p>
+    </div>
+
+    <!-- Schedule Task Section -->
+    <div class="card schedule-card" id="scheduleTask" style="margin-top: 2rem;">
+        <h3 class="form-section-title">🌱 Schedule a Care Task</h3>
+        <p class="page-subtitle" style="margin-bottom: 1.25rem;">Add a planned care action for any plant in your collection.</p>
+
+        <form th:action="@{/tasks/add}" method="post">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="plantId">Plant *</label>
+                    <select id="plantId" name="plantId" class="form-control" required>
+                        <option value="" disabled selected>-- Select a Plant --</option>
+                        <option th:each="p : ${plants}"
+                                th:value="${p.id}"
+                                th:text="${p.emoji} + ' ' + ${p.name} + ' (' + ${p.species} + ')'">Monstera</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="taskType">Care Action *</label>
+                    <select id="taskType" name="taskType" class="form-control" required>
+                        <option th:each="t : ${taskTypes}"
+                                th:value="${t.name()}"
+                                th:text="${t.emoji} + ' ' + ${t.displayName}">Watering</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-top: 1rem;">
+                <div class="form-group">
+                    <label for="dueDate">Due Date *</label>
+                    <input type="date" id="dueDate" name="dueDate" class="form-control"
+                           th:value="${todayDate}" required/>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes / Instructions</label>
+                    <input type="text" id="notes" name="notes" class="form-control"
+                           placeholder="e.g. Check soil dryness, use balanced fertilizer"/>
+                </div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary">+ Add Care Task</button>
+            </div>
+        </form>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Plant Library')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+
+<main class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">🔬 Botanical Plant Library</h1>
+            <p class="page-subtitle">Reference guide for species care profiles, environmental requirements, and growing tips.</p>
+        </div>
+        <a href="/plants/add" class="btn btn-primary">+ Add to My Plants</a>
+    </div>
+
+    <!-- Species Grid -->
+    <div class="plants-grid">
+        <div class="card library-card" th:each="p : ${plants}">
+            <div class="library-header">
+                <span class="library-emoji" th:text="${p.emoji}">🌿</span>
+                <div class="library-title-wrap">
+                    <h3 class="library-title" th:text="${p.name}">Plant Name</h3>
+                    <p class="library-species" th:text="${p.species}">Botanical Name</p>
+                </div>
+            </div>
+
+            <div class="library-body">
+                <p class="library-desc" th:text="${p.description}">Detailed species profile and characteristics.</p>
+
+                <div class="library-spec-list">
+                    <div class="spec-row">
+                        <span class="spec-label">Classification:</span>
+                        <span class="badge badge-blue" th:text="${p.plantType}">Indoor Plant</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Watering Cycle:</span>
+                        <span class="spec-val" th:text="'Every ' + ${p.wateringFrequencyDays} + ' days'">Every 7 days</span>
+                    </div>
+                    <div class="spec-row" th:if="${p.indoor}">
+                        <span class="spec-label">Light Needs:</span>
+                        <span class="spec-val" th:text="${p.lightRequirementLabel}">Medium Light</span>
+                    </div>
+                    <div class="spec-row" th:if="${p.outdoor}">
+                        <span class="spec-label">Sun Exposure:</span>
+                        <span class="spec-val" th:text="${p.sunExposureLabel}">Full Sun</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">OOP Superclass:</span>
+                        <code>Plant (abstract)</code>
+                    </div>
+                </div>
+
+                <div class="care-recommendation" style="margin-top: 1rem; padding: 0.75rem 1rem;">
+                    <strong style="color: var(--forest-green); font-size: 0.85rem;">Care Recommendation (Polymorphic):</strong>
+                    <p style="font-size: 0.83rem; margin-top: 0.25rem;" th:text="${p.careRecommendation}">Recommendation advice.</p>
+                </div>
+            </div>
+
+            <div class="library-footer">
+                <a th:href="@{/plants/{id}(id=${p.id})}" class="btn btn-secondary btn-sm" style="width: 100%; text-align: center;">View in Collection →</a>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

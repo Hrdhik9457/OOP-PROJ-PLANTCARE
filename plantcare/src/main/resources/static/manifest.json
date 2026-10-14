@@ -1,0 +1,19 @@
+{
+  "name": "PlantCare — Smart Plant Care & Gardening",
+  "short_name": "PlantCare",
+  "description": "Smart gardening companion and botanical telemetry monitor.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf6ef",
+  "theme_color": "#2d6a4f",
+  "orientation": "any",
+  "categories": ["lifestyle", "utilities", "education"],
+  "icons": [
+    {
+      "src": "/images/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
